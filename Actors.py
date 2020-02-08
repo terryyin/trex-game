@@ -1,21 +1,21 @@
 '''
 Copyright 2018 Harshdeep Sokhey
 
-Permission is hereby granted, free of charge, to any person 
-obtaining a copy of this software and associated documentation 
-files (the "Software"), to deal in the Software without restriction, 
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without restriction,
 including without limitation the rights to use, copy, modify, merge,
 publish, distribute, sublicense, and/or sell copies of the Software,
-and to permit persons to whom the Software is furnished to do so, 
+and to permit persons to whom the Software is furnished to do so,
 subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included 
+The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
@@ -25,7 +25,7 @@ from random import randint
 from time import sleep
 import logging
 
-# delays 
+# delays
 SHORT_DELAY = (30000/1000000.0)
 DELAY = (50000/1000000.0)
 LONG_DELAY = (60000/1000000.0)
@@ -45,7 +45,7 @@ class Trex:
         self.y = 20
         self.x = 4
         self.count = 0
-        
+
     def get_trex_range(self):
         return [self.y,(self.x + 6)]
 
@@ -55,7 +55,7 @@ class Trex:
         self.window.addstr(self.y-2,self.x,self.image[2])
         self.window.addstr(self.y-1,self.x,self.image[3])
         self.window.addstr(self.y ,self.x,self.image[4])
-    
+
     def update(self,isJump=False,isCollison=False):
         global TREX,toggle,SHORT_DELAY,LONG_DELAY,count
         self.image = TREX[:5]
@@ -72,11 +72,11 @@ class Trex:
             self.image[4] = TREX_JUMP_4
             self.y = self.y + jmp[self.count]
             self.count = (self.count + 1)%len(jmp)
-            
+
             if self.y >= 20:
-                self.y = 20 
+                self.y = 20
                 self.jump_state = False
 
         self.draw()
-        
+
         return self.jump_state
