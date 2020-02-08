@@ -67,15 +67,13 @@ GS_INIT = 1
 GS_START = 2
 GS_RUN = 3
 GS_COLLISION = 4
-GS_RESET = 5
 GS_EXIT = 0
 GS_ERROR = -1
 
 FREE_PLAY = 30
 
-class Main:
+class TRexGame:
     def __init__(self,window):
-        self.delay = DELAY
         self.score = 0
         self.level = 1
         self.isJump = False
@@ -89,26 +87,6 @@ class Main:
         self.cloud = Cloud(window)
         self.cacti = Cactus(window)
         self.trex = Trex(window)
-
-
-    def reset_game(self):
-        '''
-        Initializes the game state
-        '''
-        self.delay = DELAY
-        self.score = 0
-        self.level = 1
-        self.isJump = False
-        self.isCollision = False
-        self.cactus_pos = [-1,-1]
-        self.trex_pos = [100,100]
-
-        # init objects
-        self.curse_lib = curses_lib
-        self.ground = Ground(self.window)
-        self.cacti = Cactus(self.window)
-        self.trex = Trex(self.window)
-        self.window.clear()
 
 
     def get_score(self):
@@ -128,7 +106,7 @@ class Main:
             curses.beep()
 
 
-    def end_game(self,game_state=GS_RESET):
+    def end_game(self):
         image_game_over =[
             "  ___   _   __  __ ___    _____   _____ ___ ",
             " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\",
@@ -142,8 +120,7 @@ class Main:
         self.window.addstr(MESSAGE_WIN_Y+2,MESSAGE_WIN_X,   image_game_over[2])
         self.window.addstr(MESSAGE_WIN_Y+3,MESSAGE_WIN_X,   image_game_over[3])
         self.window.addstr(MESSAGE_WIN_Y+5,MESSAGE_WIN_X+15,"FINAL_SCORE : "+str(self.get_score()))
-        if game_state is GS_RESET:
-            self.window.addstr(MESSAGE_WIN_Y+7,MESSAGE_WIN_X+1,     image_game_over[4])
+        self.window.addstr(MESSAGE_WIN_Y+7,MESSAGE_WIN_X+1,     image_game_over[4])
 
     def check_collision(self):
         if self.cactus_pos is None or self.trex_pos is None:
@@ -158,11 +135,19 @@ class Main:
             return
 
 
-    def start(self):
-        isCactus = False
-        key_hit = KEY_NONE
+    def should_continue(self):
+        self.end_game()
+        while(True):
+            key_event = self.window.getch()
+            if key_event is KEY_ESC:
+                return False
+            elif key_event is KEY_ENTER:
+                return True
 
-        while(key_hit is not KEY_ESC):
+
+    def start(self):
+        self.window.clear()
+        while(True):
             self.window.clear()
 
             self.check_collision()
@@ -170,6 +155,7 @@ class Main:
             self.window.border(NO_BORDER)
             # draw scene
 
+            isCactus = False
             if self.get_score() >= FREE_PLAY:
                 isCactus = True
 
@@ -182,7 +168,8 @@ class Main:
 
             self.draw_score()
 
-            key_event = window.getch()
+            key_event = self.window.getch()
+            key_hit = KEY_NONE
             key_hit = key_hit if key_event == -1 else key_event
 
             if key_hit is KEY_SPACEBAR:
@@ -193,20 +180,9 @@ class Main:
             self.level_up()
             if self.isCollision:
                 sleep(2)
-                self.end_game(GS_RESET)
-                while(True):
-                    key_event = window.getch()
-                    if key_event is KEY_ESC:
-                        return
-                    elif key_event is KEY_ENTER:
-                        break
-
-                    sleep(1)
-                self.reset_game()
-
-                self.window.refresh()
-                sleep(DELAY)
-
+                break
+            sleep(0.01)
+        return self.should_continue()
 
 if __name__ == '__main__':
 
@@ -220,15 +196,13 @@ if __name__ == '__main__':
     window.border(NO_BORDER)
     window.nodelay(1)
 
-    # init game
-    main_game = Main(window)
-
-    # start game
-    main_game.start()
+    while(True):
+        main_game = TRexGame(window)
+        if not main_game.start():
+            break
 
     # clean up
     window.clear()
-    main_game.end_game()
     window.refresh()
     curses.endwin()
 
