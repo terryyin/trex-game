@@ -41,7 +41,6 @@ HORIZON = (BORDER_Y//2)
 HORIZON_1BY3 = (BORDER_Y//3)
 HORIZON_2BY3 = (2*BORDER_Y//3)
 
-MESSAGE_WIN_X,MESSAGE_WIN_Y = 27,10
 #score board
 SCORE_X,SCORE_Y = 85,3
 SCORE_BOARD_HEADER = "The T-REX Game"
@@ -106,22 +105,6 @@ class TRexGame:
             curses.beep()
 
 
-    def end_game(self):
-        image_game_over =[
-            "  ___   _   __  __ ___    _____   _____ ___ ",
-            " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\",
-            "| (_ |/ _ \| |\/| | _|  | (_) \ V /| _||   /",
-            " \___/_/ \_\_|  |_|___|  \___/ \_/ |___|_|_\\",
-            "Press 'Enter' Key to Restart or 'ESC' to Quit"]
-        self.window.clear()
-        self.window.border(NO_BORDER)
-        self.window.addstr(MESSAGE_WIN_Y,MESSAGE_WIN_X,     image_game_over[0])
-        self.window.addstr(MESSAGE_WIN_Y+1,MESSAGE_WIN_X,   image_game_over[1])
-        self.window.addstr(MESSAGE_WIN_Y+2,MESSAGE_WIN_X,   image_game_over[2])
-        self.window.addstr(MESSAGE_WIN_Y+3,MESSAGE_WIN_X,   image_game_over[3])
-        self.window.addstr(MESSAGE_WIN_Y+5,MESSAGE_WIN_X+15,"FINAL_SCORE : "+str(self.get_score()))
-        self.window.addstr(MESSAGE_WIN_Y+7,MESSAGE_WIN_X+1,     image_game_over[4])
-
     def check_collision(self):
         if self.cactus_pos is None or self.trex_pos is None:
             return
@@ -133,16 +116,6 @@ class TRexGame:
         if (cactus_x <= 16 and cactus_x >= 11) and (abs(cactus_y - trex_y) < 2):
             self.isCollision = True
             return
-
-
-    def should_continue(self):
-        self.end_game()
-        while(True):
-            key_event = self.window.getch()
-            if key_event is KEY_ESC:
-                return False
-            elif key_event is KEY_ENTER:
-                return True
 
 
     def start(self):
@@ -182,7 +155,25 @@ class TRexGame:
                 sleep(2)
                 break
             sleep(0.01)
-        return self.should_continue()
+        return self.get_score()
+
+
+def should_continue(window, score):
+    window.clear()
+    window.border(NO_BORDER)
+    window.addstr(10, 27, "  ___   _   __  __ ___    _____   _____ ___ ")
+    window.addstr(11, 27, " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\")
+    window.addstr(12, 27, "| (_ |/ _ \| |\/| | _|  | (_) \ V /| _||   /")
+    window.addstr(13, 27, " \___/_/ \_\_|  |_|___|  \___/ \_/ |___|_|_\\")
+    window.addstr(15, 27, "             FINAL_SCORE : "+str(score))
+    window.addstr(17, 27, "Press 'Enter' Key to Restart or 'ESC' to Quit")
+    while(True):
+        key_event = window.getch()
+        if key_event is KEY_ESC:
+            return False
+        elif key_event is KEY_ENTER:
+            return True
+
 
 if __name__ == '__main__':
 
@@ -198,7 +189,8 @@ if __name__ == '__main__':
 
     while(True):
         main_game = TRexGame(window)
-        if not main_game.start():
+        score = main_game.start()
+        if not should_continue(window, score):
             break
 
     # clean up
