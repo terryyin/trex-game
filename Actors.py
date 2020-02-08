@@ -1,7 +1,4 @@
 # Actors.py
-from random import randint
-from time import sleep
-import logging
 
 TREX = ["   =o===","   ==www",", |||-","\||||","  / \\","  \ /"]
 TREX_DEAD_0 = "   =X==="

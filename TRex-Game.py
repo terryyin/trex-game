@@ -50,13 +50,11 @@ GS_ERROR = -1
 class TRexGame:
     def __init__(self,window):
         self.level = 1
-        self.cactus_pos = [-1,-1]
 
         # init objects
         self.window = window
         self.ground = Ground(window)
         self.cloud = Cloud(window)
-        self.cacti = Cactus(window)
         self.trex = Trex(window)
 
 
@@ -73,13 +71,12 @@ class TRexGame:
 
     def check_collision(self):
         trex_pos = self.trex.get_trex_range()
-        if self.cactus_pos is None:
-            return
+        cactus_pos = self.ground.get_cactus_pos()
 
         trex_y,trex_x = trex_pos[0],trex_pos[1]
-        cactus_y,cactus_x = self.cactus_pos[0],self.cactus_pos[1]
+        cactus_y,cactus_x = cactus_pos[0],cactus_pos[1]
 
-        if (cactus_x <= 16 and cactus_x >= 11) and (abs(cactus_y - trex_y) < 2):
+        if (abs(cactus_x-trex_x)<3) and (abs(cactus_y-trex_y)<2):
             return True
 
 
@@ -88,15 +85,19 @@ class TRexGame:
         while(True):
             window.clear()
             window.border(NO_BORDER)
-            self.draw_score(score)
             self.cloud.update()
 
-            self.cactus_pos = self.ground.update(self.level)
+            self.ground.update(self.level)
             self.trex.update()
             isCollision = self.check_collision()
             if isCollision:
                 self.trex.die()
+
+            self.cloud.draw()
+            self.ground.draw()
             self.trex.draw()
+            self.draw_score(score)
+
             if window.getch() is KEY_SPACEBAR:
                 self.trex.jump()
             score += 1
@@ -129,6 +130,8 @@ if __name__ == '__main__':
 
     # prepare game environment
     curses_lib = curses.initscr()
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     window = curses.newwin(BORDER_Y,BORDER_X,0,0)
     curses.noecho()
     curses.curs_set(0)
