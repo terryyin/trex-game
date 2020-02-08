@@ -3,11 +3,6 @@ from random import randint
 from time import sleep
 import logging
 
-# delays
-SHORT_DELAY = (30000/1000000.0)
-DELAY = (50000/1000000.0)
-LONG_DELAY = (60000/1000000.0)
-
 ground = "___________________&______.._______________;.,,,_____________________&______.._____________________"
 
 ground_type = ["____","_&__","__;_","...."]
@@ -70,8 +65,8 @@ class Ground:
     def add_cactus(self):
         self.cactus.append(Cactus(self.window))
 
-    def update(self,level=0,isCactus=False):
-        global SHORT_DELAY, NUM_GND, G_Y, G_X,CACTI_OFFSET
+    def update(self,level=0):
+        global G_X,CACTI_OFFSET
         # prepare ground using random ground types
         # these ground type have visual value and
         # donot change the gameplay in any way
@@ -79,22 +74,18 @@ class Ground:
         gtype_idx = int(randint(0,NUM_GND)%NUM_GND)
         image = self.ground + ground_type[gtype_idx]
         self.ground = image[4:98]
-        sleep(SHORT_DELAY)
         # draw the initial ground
         self.draw(G_Y,G_X,self.ground)
 
-        # Draw cactus if isCactus flag is true,
-        # this flag is set True after some gametime has elapsed
-        if isCactus:
-            CACTI_OFFSET = (CACTI_OFFSET- 4)
-            if (CACTI_OFFSET <= 0):
-                CACTI_OFFSET = 96
+        CACTI_OFFSET = (CACTI_OFFSET- 4)
+        if (CACTI_OFFSET <= 0):
+            CACTI_OFFSET = 96
 
-            c = [CACTI_LEVEL_0,CACTI_LEVEL_1,CACTI_LEVEL_2,CACTI_LEVEL_3,CACTI_LEVEL_4]
-            self.add_cactus()
-            image = c[(level%3)]
-            self.cactus[0].update(20,1,image)
+        c = [CACTI_LEVEL_0,CACTI_LEVEL_1,CACTI_LEVEL_2,CACTI_LEVEL_3,CACTI_LEVEL_4]
+        self.add_cactus()
+        image = c[(level%3)]
+        self.cactus[0].update(20,1,image)
 
-            return [20,1+CACTI_OFFSET]
+        return [20,1+CACTI_OFFSET]
 
 

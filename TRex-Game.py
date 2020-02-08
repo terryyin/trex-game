@@ -7,7 +7,6 @@
 # > py -2.7 TRex-Game.py
 
 import curses
-import logging
 from time import sleep
 from Scene import Ground,Cloud,Cactus
 from Actors import Trex
@@ -47,16 +46,11 @@ GS_COLLISION = 4
 GS_EXIT = 0
 GS_ERROR = -1
 
-FREE_PLAY = 30
 
 class TRexGame:
     def __init__(self,window):
-        self.score = 0
         self.level = 1
-        self.isJump = False
-        self.isCollision = False
         self.cactus_pos = [-1,-1]
-        self.trex_pos = [100,100]
 
         # init objects
         self.window = window
@@ -66,74 +60,52 @@ class TRexGame:
         self.trex = Trex(window)
 
 
-    def get_score(self):
-        return self.score
-
-    def set_score(self, score):
-        self.score = score
-
-    def draw_score(self):
+    def draw_score(self, score):
         self.window.addstr(SCORE_Y-2,SCORE_X-3,SCORE_BOARD_HEADER)
-        self.window.addstr(SCORE_Y,SCORE_X,SCORE_TITLE + str(self.score))
+        self.window.addstr(SCORE_Y,SCORE_X,SCORE_TITLE + str(score))
         self.window.addstr(SCORE_Y+1,SCORE_X, LEVEL_TITLE + str(self.level))
 
-    def level_up(self):
-        if (self.score%100 == 0) and self.score > 0:
+    def level_up(self, score):
+        if (score%100 == 0) and score > 0:
             self.level = self.level + 1
             curses.beep()
 
 
     def check_collision(self):
-        if self.cactus_pos is None or self.trex_pos is None:
+        trex_pos = self.trex.get_trex_range()
+        if self.cactus_pos is None:
             return
 
-        trex_y,trex_x = self.trex_pos[0],self.trex_pos[1]
+        trex_y,trex_x = trex_pos[0],trex_pos[1]
         cactus_y,cactus_x = self.cactus_pos[0],self.cactus_pos[1]
 
-        logging.info("trex_pos: "+str(self.trex_pos)+", cactus_pos: "+str(self.cactus_pos))
         if (cactus_x <= 16 and cactus_x >= 11) and (abs(cactus_y - trex_y) < 2):
-            self.isCollision = True
-            return
+            return True
 
 
-    def start(self):
-        self.window.clear()
+    def start(self, window):
+        score = 0
         while(True):
-            self.window.clear()
-
-            self.check_collision()
-
-            self.window.border(NO_BORDER)
-            # draw scene
-
-            isCactus = False
-            if self.get_score() >= FREE_PLAY:
-                isCactus = True
-
-            self.cactus_pos = self.ground.update(self.level,isCactus)
-
+            window.clear()
+            window.border(NO_BORDER)
+            self.draw_score(score)
             self.cloud.update()
 
-            self.isJump = self.trex.update(self.isJump,self.isCollision)    # jump state = False ,once the trex has completed the jump
-            self.trex_pos = self.trex.get_trex_range()
-
-            self.draw_score()
-
-            key_event = self.window.getch()
-            key_hit = KEY_NONE
-            key_hit = key_hit if key_event == -1 else key_event
-
-            if key_hit is KEY_SPACEBAR:
-                self.isJump = True      # jump state = True on space bar hit
-                key_hit = KEY_NONE
-
-            self.set_score(self.score + 1)
-            self.level_up()
-            if self.isCollision:
+            self.cactus_pos = self.ground.update(self.level)
+            self.trex.update()
+            isCollision = self.check_collision()
+            if isCollision:
+                self.trex.die()
+            self.trex.draw()
+            if window.getch() is KEY_SPACEBAR:
+                self.trex.jump()
+            score += 1
+            self.level_up(score)
+            if isCollision:
                 sleep(2)
                 break
-            sleep(0.01)
-        return self.get_score()
+            sleep(0.1)
+        return score
 
 
 def should_continue(window, score):
@@ -156,10 +128,8 @@ def should_continue(window, score):
 if __name__ == '__main__':
 
     # prepare game environment
-    logging.basicConfig(filename='trex_game.log',level=logging.DEBUG)
     curses_lib = curses.initscr()
     window = curses.newwin(BORDER_Y,BORDER_X,0,0)
-    logging.info("Init Game Window")
     curses.noecho()
     curses.curs_set(0)
     window.border(NO_BORDER)
@@ -167,7 +137,7 @@ if __name__ == '__main__':
 
     while(True):
         main_game = TRexGame(window)
-        score = main_game.start()
+        score = main_game.start(window)
         if not should_continue(window, score):
             break
 
