@@ -1,23 +1,40 @@
 # Actors.py
 
-TREX = [
-    "   =o===",
-    "   ==www",
-    ", |||-",
-    "\||||",
-    "  / \\",
-    "  / \\",
-    "  \ /",
-    "  \ /"
+TREX_SPRITES = [
+    [ # stride
+        "   =o===",
+        "   ==www",
+        ", |||-",
+        "\||||",
+        "  / \\",
+    ],
+    [ # legs closed
+        "   =o===",
+        "   ==www",
+        ", |||-",
+        "\||||",
+        "  \ /"
+    ],
+    [ # jumping
+        "   =-===",
+        "   ==www",
+        ", |||-",
+        "\||||",
+        "  L L"
+    ],
+    [ # dead
+        "   =X===",
+        "   ==www",
+        ", |||-",
+        "\||||",
+        "  L L"
+    ]
 ]
-TREX_DEAD_0 = "   =X==="
-TREX_JUMP_4 = "  L L"
 
 
 class Trex:
-    def __init__(self,window,):
-        self.window = window
-        self.image = []
+    def __init__(self,draw_at,):
+        self.draw_at = draw_at
         self.jump_state = False
         self.y = 20
         self.x = 4
@@ -34,20 +51,15 @@ class Trex:
     def get_trex_range(self):
         return [self.y,(self.x + 4)]
 
-    def draw(self):
-        self.image = TREX[:5]
+    def image(self):
         if self.dead:
-            self.image[0] = TREX_DEAD_0
-        if not self.jump_state:
-            self.image[4] = TREX[4 + self.frame]
-        else:
-            self.image[4] = TREX_JUMP_4
+            return TREX_SPRITES[3]
+        elif self.jump_state:
+            return TREX_SPRITES[2]
+        return TREX_SPRITES[self.frame//2]
 
-        self.window.addstr(self.y-4,self.x,self.image[0])
-        self.window.addstr(self.y-3,self.x,self.image[1])
-        self.window.addstr(self.y-2,self.x,self.image[2])
-        self.window.addstr(self.y-1,self.x,self.image[3])
-        self.window.addstr(self.y ,self.x,self.image[4])
+    def draw(self):
+        self.draw_at(self.y-4, self.x, self.image())
 
     def update(self):
         self.frame = (self.frame + 1) % 4

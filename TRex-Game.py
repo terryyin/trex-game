@@ -1,51 +1,12 @@
-
-## TRex-Game.py
-## Software Requirements:
-# ncurses library
-# Python 2.7
-## Syntax:
-# > py -2.7 TRex-Game.py
-
 import curses
 from time import sleep
 from Scene import Ground,Cloud,Cactus
 from Actors import Trex
 
-BORDER_X,BORDER_Y = 100,30
-PAD_X,PAD_Y = 2,2
-NO_BORDER = 0
-HORIZON = (BORDER_Y//2)
-HORIZON_1BY3 = (BORDER_Y//3)
-HORIZON_2BY3 = (2*BORDER_Y//3)
-
-#score board
-SCORE_X,SCORE_Y = 85,3
-SCORE_BOARD_HEADER = "The T-REX Game"
-SCORE_TITLE = "SCORE: "
-LEVEL_TITLE = "LEVEL: "
-# delays
-SHORT_DELAY = (30000/1000000.0)
-DELAY = (50000/1000000.0)
-LONG_DELAY = (60000/1000000.0)
-
 # key codes
 KEY_SPACEBAR = 32
 KEY_ESC = 27
 KEY_ENTER =10
-KEY_NONE = 0
-
-# misc
-MAX_JUMP = 5
-
-
-# game states
-GS_INIT = 1
-GS_START = 2
-GS_RUN = 3
-GS_COLLISION = 4
-GS_EXIT = 0
-GS_ERROR = -1
-
 
 class TRexGame:
     def __init__(self,window):
@@ -53,13 +14,16 @@ class TRexGame:
         self.window = window
         self.ground = Ground(window)
         self.cloud = Cloud(window)
-        self.trex = Trex(window)
+        self.trex = Trex(self.draw_at)
         self.score = 0
 
     def draw_score(self):
-        self.window.addstr(SCORE_Y-2,SCORE_X-3,SCORE_BOARD_HEADER)
-        self.window.addstr(SCORE_Y,SCORE_X,SCORE_TITLE + str(self.score))
-        self.window.addstr(SCORE_Y+1,SCORE_X, LEVEL_TITLE + str(self.score//100))
+        self.draw_at(1, 82, [
+            "The T-REX Game",
+            "",
+            "   SCORE: " + str(self.score),
+            "   LEVEL: " + str(self.score//100)
+        ])
 
     def check_collision(self):
         trex_pos = self.trex.get_trex_range()
@@ -86,6 +50,7 @@ class TRexGame:
         self.ground.draw()
         self.trex.draw()
         self.draw_score()
+        window.refresh()
 
     def handle_controls(self):
         if window.getch() is KEY_SPACEBAR:
@@ -108,7 +73,7 @@ class TRexGame:
 
     def should_continue(self):
         self.window.clear()
-        self.window.border(NO_BORDER)
+        self.window.border(0)
         self.draw_at(10, 27, [
             "  ___   _   __  __ ___    _____   _____ ___ ",
             " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\",
@@ -131,10 +96,10 @@ if __name__ == '__main__':
 
     # prepare game environment
     curses_lib = curses.initscr()
-    window = curses.newwin(BORDER_Y,BORDER_X,0,0)
+    window = curses.newwin(30,100,0,0)
     curses.noecho()
     curses.curs_set(0)
-    window.border(NO_BORDER)
+    window.border(0)
     window.nodelay(1)
 
     while(True):
