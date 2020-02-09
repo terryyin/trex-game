@@ -1,14 +1,21 @@
 # Scene.py
 from random import randint
 import curses
-from sprites import TREX_SPRITES
+from sprites import TREX_SPRITES, GROUND_SPRITE, CACTUS_SPRITES
+
+GND_Y = 20
+CACTUS_START_X = 96
+
+def draw_at(window, y, x, image):
+    for i, line in enumerate(image):
+        window.addstr(y+i, x, line)
 
 class Trex:
-    def __init__(self,draw_at,):
-        self.draw_at = draw_at
+    def __init__(self, window):
+        self.window = window
         self.jumping = None
         self.jump_state = 0
-        self.y = 20
+        self.y = GND_Y
         self.x = 4
         self.dead = False
         self.frame = 0
@@ -19,10 +26,10 @@ class Trex:
     def die(self):
         self.dead = True
 
-    def get_trex_range(self):
+    def get_pos(self):
         return [self.y,(self.x + 4)]
 
-    def image(self):
+    def get_image(self):
         if self.dead:
             return TREX_SPRITES[3]
         elif self.jumping:
@@ -30,7 +37,7 @@ class Trex:
         return TREX_SPRITES[self.frame]
 
     def draw(self):
-        self.draw_at(self.y-4, self.x, self.image())
+        draw_at(self.window, self.y-4, self.x, self.get_image())
 
     def update(self):
         self.frame = (self.frame + 1) % 2
@@ -38,26 +45,11 @@ class Trex:
             jmp = [-1,-2,-3,0, 0,1,2,3]
             self.y = self.y + jmp[self.jump_state]
             self.jump_state = (self.jump_state + 1)%len(jmp)
-            if self.y >= 20:
-                self.y = 20
+            if self.y >= GND_Y:
+                self.y = GND_Y
                 self.jumping = False
-ground = "___________________&______.._______________;.,,,_____________________&______.._____________________"
 
-ground_type = ["________","_&______","__;_____","........"]
-GROUND_FLAT = 0
-GROUND_GRASS = 1
-GROUND_ROCK = 2
-GROUND_BROKEN = 3
-NUM_GND = 4
-G_Y,G_X = 20,2
 
-CACTI_LEVEL_0 = ["   ","# |  ","#_|_#","  |  "]
-CACTI_LEVEL_1 = ["   ","#_| #","|_#  ","  |  "]
-CACTI_LEVEL_2 = ["# | #","#_| #","|_#  ","  |  "]
-CACTI_LEVEL_3 = ["# | #","# |_#","#_|  ","  |  "]
-CACTI_LEVEL_4 = ["# |  ","# | #","#_|_#","  |  "]
-
-CACTI_OFFSET = 96
 
 class Cloud:
     def __init__(self,window):
@@ -74,47 +66,59 @@ class Cloud:
             self.clouds.append((randint(5,10), 90))
         self.clouds = [(c[0], c[1]-1) for c in self.clouds if c[1]>2]
 
+
+
 class Cactus:
+    def __init__(self):
+        self.x = CACTUS_START_X
+        sprite_index = randint(0,len(CACTUS_SPRITES)-1)
+        self.image = CACTUS_SPRITES[sprite_index]
+
+    def update(self, speed):
+        self.x -= speed
+
+    def draw(self, window):
+        draw_at(window, GND_Y-3, self.x, self.image)
+
+
+class Cacti:
     def __init__(self,window):
         self.window = window
-        self.x = 96
-        c = [CACTI_LEVEL_0,CACTI_LEVEL_1,CACTI_LEVEL_2,CACTI_LEVEL_3,CACTI_LEVEL_4]
-        self.image = c[randint(0,2)]
+        self.cacti = []
 
-    def draw(self,y):
-        self.window.addstr(y-3,self.x,   self.image[0])
-        self.window.addstr(y-2,self.x,   self.image[1])
-        self.window.addstr(y-1,self.x,   self.image[2])
-        self.window.addstr(y,self.x,     self.image[3])
+    def draw(self):
+        for cactus in self.cacti:
+            cactus.draw(self.window)
 
-    def update(self,y,image, speed):
-        self.x -= speed
+    def _enough_space_from_the_last_cactus(self, speed):
+        if len(self.cacti) < 1:
+            return True
+        if self.cacti[-1].x < CACTUS_START_X - 9*speed:
+            return True
+        return False
+
+    def update(self, speed):
+        for cactus in self.cacti:
+            cactus.update(speed)
+        while(self.cacti and self.cacti[0].x < speed):
+            self.cacti.pop(0)
+        if self._enough_space_from_the_last_cactus(speed):
+            if randint(0, 10) == 0:
+                self.cacti.append(Cactus())
+
+    def get_first_pos(self):
+        if self.cacti:
+            return [GND_Y, self.cacti[0].x]
+        return [GND_Y, 100]
+
 
 class Ground:
     def __init__(self,window):
-        self.ground = ground
+        self.image = GROUND_SPRITE
         self.window = window
-        self.cactus = Cactus(self.window)
 
     def draw(self):
-        self.window.addstr(G_Y, G_X, self.ground)
-        self.cactus.draw(G_Y)
-
-    def get_cactus_pos(self):
-        return [20, self.cactus.x]
+        draw_at(self.window, GND_Y, 2, [self.image])
 
     def update(self,speed):
-        # prepare ground using random ground types
-        # these ground type have visual value and
-        # donot change the gameplay in any way
-        image = ""
-        gtype_idx = int(randint(0,NUM_GND)%NUM_GND)
-        image = self.ground + ground_type[gtype_idx]
-        self.ground = image[speed:speed+94]
-        # draw the initial ground
-
-        self.cactus.update(20,image, speed)
-        if self.cactus.x < speed:
-            self.cactus = Cactus(self.window)
-
-
+        self.image = self.image[speed:speed+94] + self.image[:speed]

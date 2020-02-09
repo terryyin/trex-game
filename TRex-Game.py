@@ -1,7 +1,6 @@
 import curses
 from time import sleep
-from GameObjects import Trex, Ground, Cloud, Cactus
-from Actors import Trex
+from GameObjects import Trex, Ground, Cloud, Cacti, draw_at
 
 # key codes
 KEY_SPACEBAR = 32
@@ -10,15 +9,15 @@ KEY_ENTER =10
 
 class TRexGame:
     def __init__(self,window):
-        # init objects
         self.window = window
         self.ground = Ground(window)
+        self.cacti = Cacti(window)
         self.cloud = Cloud(window)
-        self.trex = Trex(self.draw_at)
+        self.trex = Trex(window)
         self.score = 0
 
     def draw_score(self):
-        self.draw_at(1, 82, [
+        draw_at(window, 1, 82, [
             "The T-REX Game",
             "",
             "   SCORE: " + str(self.score),
@@ -26,8 +25,8 @@ class TRexGame:
         ])
 
     def check_collision(self):
-        trex_pos = self.trex.get_trex_range()
-        cactus_pos = self.ground.get_cactus_pos()
+        trex_pos = self.trex.get_pos()
+        cactus_pos = self.cacti.get_first_pos()
 
         trex_y,trex_x = trex_pos[0],trex_pos[1]
         cactus_y,cactus_x = cactus_pos[0],cactus_pos[1]
@@ -39,6 +38,7 @@ class TRexGame:
         self.score += 1
         speed = self.score//200+3
         self.ground.update(speed)
+        self.cacti.update(speed)
         self.cloud.update()
         self.trex.update()
         if self.check_collision():
@@ -48,6 +48,7 @@ class TRexGame:
         window.clear()
         self.cloud.draw()
         self.ground.draw()
+        self.cacti.draw()
         self.trex.draw()
         self.draw_score()
         window.refresh()
@@ -67,14 +68,10 @@ class TRexGame:
             sleep(0.06)
         sleep(2)
 
-    def draw_at(self, y, x, image):
-        for i, line in enumerate(image):
-            self.window.addstr(y+i, x, line)
-
     def should_continue(self):
         self.window.clear()
         self.window.border(0)
-        self.draw_at(10, 27, [
+        draw_at(window, 10, 27, [
             "  ___   _   __  __ ___    _____   _____ ___ ",
             " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\",
             "| (_ |/ _ \| |\/| | _|  | (_) \ V /| _||   /",
