@@ -49,25 +49,17 @@ GS_ERROR = -1
 
 class TRexGame:
     def __init__(self,window):
-        self.level = 1
-
         # init objects
         self.window = window
         self.ground = Ground(window)
         self.cloud = Cloud(window)
         self.trex = Trex(window)
+        self.score = 0
 
-
-    def draw_score(self, score):
+    def draw_score(self):
         self.window.addstr(SCORE_Y-2,SCORE_X-3,SCORE_BOARD_HEADER)
-        self.window.addstr(SCORE_Y,SCORE_X,SCORE_TITLE + str(score))
-        self.window.addstr(SCORE_Y+1,SCORE_X, LEVEL_TITLE + str(self.level))
-
-    def level_up(self, score):
-        if (score%100 == 0) and score > 0:
-            self.level = self.level + 1
-            curses.beep()
-
+        self.window.addstr(SCORE_Y,SCORE_X,SCORE_TITLE + str(self.score))
+        self.window.addstr(SCORE_Y+1,SCORE_X, LEVEL_TITLE + str(self.score//100))
 
     def check_collision(self):
         trex_pos = self.trex.get_trex_range()
@@ -79,51 +71,60 @@ class TRexGame:
         if (abs(cactus_x-trex_x)<3) and (abs(cactus_y-trex_y)<2):
             return True
 
+    def update_all(self):
+        self.score += 1
+        speed = self.score//200+3
+        self.ground.update(speed)
+        self.cloud.update()
+        self.trex.update()
+        if self.check_collision():
+            self.trex.die()
+
+    def draw_all(self):
+        window.clear()
+        self.cloud.draw()
+        self.ground.draw()
+        self.trex.draw()
+        self.draw_score()
+
+    def handle_controls(self):
+        if window.getch() is KEY_SPACEBAR:
+            self.trex.jump()
+
+    def is_end_of_game(self):
+        return self.check_collision()
 
     def start(self, window):
-        score = 0
-        while(True):
-            window.clear()
-            window.border(NO_BORDER)
-            self.cloud.update()
-
-            self.ground.update(self.level/2+3)
-            self.trex.update()
-            isCollision = self.check_collision()
-            if isCollision:
-                self.trex.die()
-
-            self.cloud.draw()
-            self.ground.draw()
-            self.trex.draw()
-            self.draw_score(score)
-
-            if window.getch() is KEY_SPACEBAR:
-                self.trex.jump()
-            score += 1
-            self.level_up(score)
-            if isCollision:
-                sleep(2)
-                break
+        while(not self.is_end_of_game()):
+            self.handle_controls()
+            self.update_all()
+            self.draw_all()
             sleep(0.06)
-        return score
+        sleep(2)
 
+    def draw_at(self, y, x, image):
+        for i, line in enumerate(image):
+            self.window.addstr(y+i, x, line)
 
-def should_continue(window, score):
-    window.clear()
-    window.border(NO_BORDER)
-    window.addstr(10, 27, "  ___   _   __  __ ___    _____   _____ ___ ")
-    window.addstr(11, 27, " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\")
-    window.addstr(12, 27, "| (_ |/ _ \| |\/| | _|  | (_) \ V /| _||   /")
-    window.addstr(13, 27, " \___/_/ \_\_|  |_|___|  \___/ \_/ |___|_|_\\")
-    window.addstr(15, 27, "             FINAL_SCORE : "+str(score))
-    window.addstr(17, 27, "Press 'Enter' Key to Restart or 'ESC' to Quit")
-    while(True):
-        key_event = window.getch()
-        if key_event is KEY_ESC:
-            return False
-        elif key_event is KEY_ENTER:
-            return True
+    def should_continue(self):
+        self.window.clear()
+        self.window.border(NO_BORDER)
+        self.draw_at(10, 27, [
+            "  ___   _   __  __ ___    _____   _____ ___ ",
+            " / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \\",
+            "| (_ |/ _ \| |\/| | _|  | (_) \ V /| _||   /",
+            " \___/_/ \_\_|  |_|___|  \___/ \_/ |___|_|_\\",
+            "",
+            "             FINAL_SCORE : "+str(self.score),
+            "",
+            "Press 'Enter' Key to Restart or 'ESC' to Quit"
+        ])
+        while(True):
+            key_event = self.window.getch()
+            if key_event is KEY_ESC:
+                return False
+            elif key_event is KEY_ENTER:
+                return True
 
 
 if __name__ == '__main__':
@@ -138,8 +139,8 @@ if __name__ == '__main__':
 
     while(True):
         main_game = TRexGame(window)
-        score = main_game.start(window)
-        if not should_continue(window, score):
+        main_game.start(window)
+        if not main_game.should_continue():
             break
 
     # clean up

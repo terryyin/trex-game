@@ -32,7 +32,7 @@ class Trex:
         self.dead = True
 
     def get_trex_range(self):
-        return [self.y,(self.x + 6)]
+        return [self.y,(self.x + 4)]
 
     def draw(self):
         self.image = TREX[:5]
