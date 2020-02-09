@@ -1,6 +1,15 @@
 # Actors.py
 
-TREX = ["   =o===","   ==www",", |||-","\||||","  / \\","  \ /"]
+TREX = [
+    "   =o===",
+    "   ==www",
+    ", |||-",
+    "\||||",
+    "  / \\",
+    "  / \\",
+    "  \ /",
+    "  \ /"
+]
 TREX_DEAD_0 = "   =X==="
 TREX_JUMP_4 = "  L L"
 
@@ -30,7 +39,7 @@ class Trex:
         if self.dead:
             self.image[0] = TREX_DEAD_0
         if not self.jump_state:
-            self.image[4] = TREX[5] if self.frame == 0 else TREX[4]
+            self.image[4] = TREX[4 + self.frame]
         else:
             self.image[4] = TREX_JUMP_4
 
@@ -41,9 +50,9 @@ class Trex:
         self.window.addstr(self.y ,self.x,self.image[4])
 
     def update(self):
-        self.frame = (self.frame + 1) % 2
+        self.frame = (self.frame + 1) % 4
         if self.jump_state:
-            jmp = [-1,-2,-3,0,1,2,3]
+            jmp = [-1,-2,-3,0, 0,1,2,3]
             self.y = self.y + jmp[self.count]
             self.count = (self.count + 1)%len(jmp)
             if self.y >= 20:

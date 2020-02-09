@@ -87,7 +87,7 @@ class TRexGame:
             window.border(NO_BORDER)
             self.cloud.update()
 
-            self.ground.update(self.level)
+            self.ground.update(self.level/2+3)
             self.trex.update()
             isCollision = self.check_collision()
             if isCollision:
@@ -105,7 +105,7 @@ class TRexGame:
             if isCollision:
                 sleep(2)
                 break
-            sleep(0.1)
+            sleep(0.06)
         return score
 
 
@@ -130,8 +130,6 @@ if __name__ == '__main__':
 
     # prepare game environment
     curses_lib = curses.initscr()
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     window = curses.newwin(BORDER_Y,BORDER_X,0,0)
     curses.noecho()
     curses.curs_set(0)

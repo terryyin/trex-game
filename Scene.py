@@ -4,7 +4,7 @@ import curses
 
 ground = "___________________&______.._______________;.,,,_____________________&______.._____________________"
 
-ground_type = ["____","_&__","__;_","...."]
+ground_type = ["________","_&______","__;_____","........"]
 GROUND_FLAT = 0
 GROUND_GRASS = 1
 GROUND_ROCK = 2
@@ -27,8 +27,8 @@ class Cloud:
 
     def draw(self):
         for pos in self.clouds:
-            self.window.addstr(pos[0], pos[1],"   @@@", curses.color_pair(1))
-            self.window.addstr(pos[0]+1, pos[1],"..@@@@@....", curses.color_pair(1))
+            self.window.addstr(pos[0], pos[1],"   @@@", curses.A_DIM)
+            self.window.addstr(pos[0]+1, pos[1],"..@@@@@....", curses.A_DIM)
 
     def update(self):
         if randint(1, 30) == 1 or len(self.clouds) < 1:
@@ -36,11 +36,11 @@ class Cloud:
         self.clouds = [(c[0], c[1]-1) for c in self.clouds if c[1]>2]
 
 class Cactus:
-    def __init__(self,window, level):
+    def __init__(self,window):
         self.window = window
         self.x = 96
         c = [CACTI_LEVEL_0,CACTI_LEVEL_1,CACTI_LEVEL_2,CACTI_LEVEL_3,CACTI_LEVEL_4]
-        self.image = c[(level%3)]
+        self.image = c[randint(0,2)]
 
     def draw(self,y):
         self.window.addstr(y-3,self.x,   self.image[0])
@@ -53,10 +53,9 @@ class Cactus:
 
 class Ground:
     def __init__(self,window):
-        global ground, ground_type
         self.ground = ground
         self.window = window
-        self.cactus = Cactus(self.window, 0)
+        self.cactus = Cactus(self.window)
 
     def draw(self):
         self.window.addstr(G_Y, G_X, self.ground)
@@ -65,18 +64,18 @@ class Ground:
     def get_cactus_pos(self):
         return [20, self.cactus.x]
 
-    def update(self,level=0):
+    def update(self,speed):
         # prepare ground using random ground types
         # these ground type have visual value and
         # donot change the gameplay in any way
         image = ""
         gtype_idx = int(randint(0,NUM_GND)%NUM_GND)
         image = self.ground + ground_type[gtype_idx]
-        self.ground = image[4:98]
+        self.ground = image[speed:speed+94]
         # draw the initial ground
 
-        self.cactus.update(20,image, 4)
-        if self.cactus.x < 4:
-            self.cactus = Cactus(self.window, level)
+        self.cactus.update(20,image, speed)
+        if self.cactus.x < speed:
+            self.cactus = Cactus(self.window)
 
 
