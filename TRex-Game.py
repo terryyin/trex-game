@@ -1,6 +1,6 @@
 import curses
 from time import sleep
-from Scene import Ground,Cloud,Cactus
+from GameObjects import Trex, Ground, Cloud, Cactus
 from Actors import Trex
 
 # key codes
