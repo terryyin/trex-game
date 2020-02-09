@@ -1,0 +1,3 @@
+language = "bash"
+run = "python3 TRex-Game.py"
+
