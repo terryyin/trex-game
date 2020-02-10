@@ -7,7 +7,7 @@ CACTUS_START_X = 96
 
 def draw_at(window, y, x, image, dim=False):
     for i, line in enumerate(image):
-        window.addstr(y+i, x, line, curses.A_DI if dim else 0)
+        window.addstr(y+i, x, line, curses.A_DIM if dim else 0)
 
 class Trex:
     def __init__(self, window):
