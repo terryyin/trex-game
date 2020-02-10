@@ -1,14 +1,13 @@
-# Scene.py
 from random import randint
 import curses
-from sprites import TREX_SPRITES, GROUND_SPRITE, CACTUS_SPRITES
+from sprites import TREX_SPRITES, GROUND_SPRITE, CACTUS_SPRITES, CLOUD_SPRITE
 
 GND_Y = 20
 CACTUS_START_X = 96
 
-def draw_at(window, y, x, image):
+def draw_at(window, y, x, image, dim=False):
     for i, line in enumerate(image):
-        window.addstr(y+i, x, line)
+        window.addstr(y+i, x, line, 0 if dim else curses.A_DIM)
 
 class Trex:
     def __init__(self, window):
@@ -26,8 +25,10 @@ class Trex:
     def die(self):
         self.dead = True
 
-    def get_pos(self):
-        return [self.y,(self.x + 4)]
+    def check_collision(self, object_pos):
+        if (abs(object_pos[1]-self.x-4)<3) and (abs(object_pos[0]-self.y)<2):
+            return True
+        return False
 
     def get_image(self):
         if self.dead:
@@ -42,13 +43,13 @@ class Trex:
     def update(self):
         self.frame = (self.frame + 1) % 2
         if self.jumping:
-            jmp = [-1,-2,-3,0, 0,1,2,3]
+            jmp = [-3,-2,-1,0, 0,1,2,3]
             self.y = self.y + jmp[self.jump_state]
-            self.jump_state = (self.jump_state + 1)%len(jmp)
+            self.jump_state += 1
             if self.y >= GND_Y:
                 self.y = GND_Y
                 self.jumping = False
-
+                self.jump_state = 0
 
 
 class Cloud:
@@ -58,14 +59,12 @@ class Cloud:
 
     def draw(self):
         for pos in self.clouds:
-            self.window.addstr(pos[0], pos[1],"   @@@", curses.A_DIM)
-            self.window.addstr(pos[0]+1, pos[1],"..@@@@@....", curses.A_DIM)
+            draw_at(self.window, pos[0], pos[1], CLOUD_SPRITE, True)
 
     def update(self):
         if randint(1, 30) == 1 or len(self.clouds) < 1:
             self.clouds.append((randint(5,10), 90))
         self.clouds = [(c[0], c[1]-1) for c in self.clouds if c[1]>2]
-
 
 
 class Cactus:

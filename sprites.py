@@ -65,4 +65,7 @@ CACTUS_SPRITES = [
     ]
 ]
 
-
+CLOUD_SPRITE = [
+    "   @@@",
+    "..@@@@@...."
+]
